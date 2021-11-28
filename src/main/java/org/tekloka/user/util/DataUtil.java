@@ -14,17 +14,7 @@ public class DataUtil {
 	private DataUtil() {
 	}
 	
-	public Long getLongValueFromRequest(HttpServletRequest request, String key) {
-		Long value = null;
-		try {
-			value = ((Number) request.getAttribute(key)).longValue();
-		}catch (Exception e) {
-			logger.error("Not able to get Long value from request. - {}", e.getMessage());
-		} 
-		return value;
-	}
-	
-	public String getStringValueFromRequest(HttpServletRequest request, String key) {
+	public String getRequestAttributeValue(HttpServletRequest request, String key) {
 		var value = "";
 		try {
 			value = String.valueOf(request.getAttribute(key));
@@ -32,6 +22,10 @@ public class DataUtil {
 			logger.error("Not able to get String value from request. - {}", e.getMessage());
 		}
 		return value;
+	}
+	
+	public String getRequestHeaderValue(HttpServletRequest request, String key) {
+		return request.getHeader(key);
 	}
 
 }

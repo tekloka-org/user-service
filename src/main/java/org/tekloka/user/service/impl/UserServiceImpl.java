@@ -25,6 +25,7 @@ import org.tekloka.user.dto.mapper.UserMapper;
 import org.tekloka.user.repository.UserRepository;
 import org.tekloka.user.security.JWTHelper;
 import org.tekloka.user.security.SecurityCache;
+import org.tekloka.user.service.AdminService;
 import org.tekloka.user.service.RoleService;
 import org.tekloka.user.service.UserService;
 import org.tekloka.user.util.EncryptDecryptUtil;
@@ -41,10 +42,11 @@ public class UserServiceImpl implements UserService {
 	private final JWTHelper jwtHelper;
 	private final RoleService roleService;
 	private final SecurityCache securityCache;
+	private final AdminService adminService;
 	
 	public UserServiceImpl(UserRepository userRepository, ResponseUtil responseUtil,
 			EncryptDecryptUtil encryptDecryptUtil, UserMapper userMapper, JWTHelper jwtHelper,
-			RoleService roleService, SecurityCache securityCache) {
+			RoleService roleService, SecurityCache securityCache, AdminService adminService) {
 		this.userRepository = userRepository;
 		this.responseUtil = responseUtil;
 		this.encryptDecryptUtil = encryptDecryptUtil;
@@ -52,6 +54,7 @@ public class UserServiceImpl implements UserService {
 		this.jwtHelper = jwtHelper;
 		this.roleService = roleService;
 		this.securityCache = securityCache;
+		this.adminService = adminService;
 	}
 	
 	public User toUser(Optional<User> userOptional, UserDTO userDTO) {
@@ -162,6 +165,7 @@ public class UserServiceImpl implements UserService {
 				var user = toUser(userOptional, userDTO);
 				user = save(user);
 				dataMap.put(DataConstants.USER, toUserDTO(user));
+				adminService.removeUserFromSecurityCache(user.getUserId());
 				return responseUtil.generateResponse(dataMap, ResponseConstants.USER_UPDATED);
 			}catch (Exception e) {
 				logger.error(AppConstants.LOG_FORMAT, ResponseConstants.USER_NOT_UPDATED, e);
@@ -224,6 +228,11 @@ public class UserServiceImpl implements UserService {
 			}
 		}
 		return responseUtil.generateResponse(dataMap, ResponseConstants.USER_NOT_FOUND);
+	}
+
+	@Override
+	public ResponseEntity<Object> getUserAccess(HttpServletRequest request, String userId) {
+		return ResponseEntity.ok(securityCache.getUserAccess(userId));
 	}
 
 }

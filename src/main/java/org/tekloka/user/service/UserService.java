@@ -9,6 +9,7 @@ import org.tekloka.user.document.User;
 import org.tekloka.user.dto.LoginDTO;
 import org.tekloka.user.dto.SignUpDTO;
 import org.tekloka.user.dto.UserDTO;
+import org.tekloka.user.security.UserAccess;
 
 public interface UserService {
 
@@ -30,6 +31,8 @@ public interface UserService {
 
 	ResponseEntity<Object> getUser(HttpServletRequest request, String userIdentifier);
 
-	ResponseEntity<Object> getLoggedInUser(HttpServletRequest request);	
+	ResponseEntity<Object> getLoggedInUser(HttpServletRequest request);
+
+	ResponseEntity<Object> getUserAccess(HttpServletRequest request, String userId);	
 
 }

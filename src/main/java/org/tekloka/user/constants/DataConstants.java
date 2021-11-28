@@ -8,6 +8,9 @@ public class DataConstants {
 	public static final String X_AUTH_TOKEN = "X_AUTH_TOKEN";
 	public static final String REFRESH_TOKEN = "REFRESH_TOKEN";
 	
+	public static final String FEIGN_CLIENT_ACCESS_ID = "feignClientAccessId";
+	public static final String USER_ACCESS = "userAccess";
+	
 	public static final String LOGGED_IN_USER_ID = "loggedInUserId";
 	public static final String EMAIL_ADDRESS = "emailAddress";
 	public static final String USER_NAME = "userName";

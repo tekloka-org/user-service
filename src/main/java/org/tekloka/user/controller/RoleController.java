@@ -35,7 +35,7 @@ public class RoleController {
 	     @ApiResponse(responseCode = "500", description = "Internal Server Error")
 	})
 	@PostMapping(path = "/save", produces = MediaType.APPLICATION_JSON_VALUE)
-	@AccessPermissions(value = { PermissionConstants.UPDATE_ROLE })
+	@AccessPermissions(value = PermissionConstants.UPDATE_ROLE )
 	public ResponseEntity<Object> save(HttpServletRequest request, @RequestBody RoleDTO roleDTO) {
 		return roleService.save(request, roleDTO);
 	}

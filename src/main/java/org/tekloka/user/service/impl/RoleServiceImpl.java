@@ -18,6 +18,7 @@ import org.tekloka.user.document.Role;
 import org.tekloka.user.dto.RoleDTO;
 import org.tekloka.user.dto.mapper.RoleMapper;
 import org.tekloka.user.repository.RoleRepository;
+import org.tekloka.user.service.AdminService;
 import org.tekloka.user.service.RoleService;
 import org.tekloka.user.util.ResponseUtil;
 
@@ -28,11 +29,14 @@ public class RoleServiceImpl implements RoleService{
 	private final RoleRepository roleRepository;
 	private final RoleMapper roleMapper;
 	private final ResponseUtil responseUtil;
-
-	public RoleServiceImpl(RoleRepository rolerepository, RoleMapper roleMapper, ResponseUtil responseUtil) {
+	private final AdminService adminService;
+	
+	public RoleServiceImpl(RoleRepository rolerepository, RoleMapper roleMapper, ResponseUtil responseUtil,
+			AdminService adminService) {
 	        this.roleRepository = rolerepository;
 	        this.roleMapper = roleMapper;
 	        this.responseUtil = responseUtil;
+	        this.adminService = adminService;
 	    }
 
 	public Role save(Role role) {
@@ -100,6 +104,7 @@ public class RoleServiceImpl implements RoleService{
 				var role = toRole(roleOptional, roleDTO);
 				role = save(role);
 				dataMap.put(DataConstants.ROLE, toRoleDTO(role));
+				adminService.clearSecurityCache();
 				return responseUtil.generateResponse(dataMap, ResponseConstants.ROLE_UPDATED);
 			}catch (Exception e) {
 				logger.error(AppConstants.LOG_FORMAT, ResponseConstants.ROLE_NOT_UPDATED, e);

@@ -3,6 +3,7 @@ package org.tekloka.user.security;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -21,6 +22,18 @@ public final class SecurityCache {
 	
 	public SecurityCache(@Lazy UserService userService) {
 		this.userService = userService;
+	}
+	
+	public UserAccess getUserAccess(String userId){
+		if(userAccessMap.containsKey(userId)) {
+			return userAccessMap.get(userId);
+		}else {
+			var userAccess = addUserToAccessMap(userId); 
+			if(null != userAccess) {
+				return userAccess;
+			}
+			return null;
+		}
 	}
 	
 	public Set<String> getUserPermissionSet(String userId){
@@ -53,18 +66,18 @@ public final class SecurityCache {
 			Set<String> userRoles = new HashSet<>();
 			Set<String> userPermissions = new HashSet<>();
 			if(null != userOptional.get().getRoles()) {
-				userOptional.get().getRoles().stream().forEach(e -> userRoles.add(e.getCode()));
-				userOptional.get().getRoles().stream().map(Role::getPermissions)
+				userOptional.get().getRoles().stream().filter(Objects::nonNull).forEach(e -> userRoles.add(e.getCode()));
+				userOptional.get().getRoles().stream().filter(Objects::nonNull).map(Role::getPermissions)
 				.forEach(permissions -> permissions.stream().forEach(p -> userPermissions.add(p.getCode())));
 			}
-			var userAccess = new UserAccess(userId, userRoles, userPermissions);
+			var userAccess = new UserAccess(userId, userOptional.get().getName(), userRoles, userPermissions);
 			userAccessMap.put(userId, userAccess);
 			return userAccess;
 		}
 		return null;
 	}
 	
-	public boolean removeUserFromAccessMap(String userId) {
+	public boolean removeUserFromSecurityCache(String userId) {
 		if(userAccessMap.containsKey(userId)) {
 			userAccessMap.remove(userId);
 			return true;
@@ -73,7 +86,7 @@ public final class SecurityCache {
 		}
 	}
 	
-	public void clearUserAccessMap() {
+	public void clearSecurityCache() {
 		userAccessMap.clear();
 	}
 	

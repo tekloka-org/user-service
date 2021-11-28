@@ -55,4 +55,7 @@ public class ResponseConstants {
 
 	public static final String USER_SERVICE_ACCESSIBLE = "USER_SERVICE_ACCESSIBLE";
 	
+	public static final String USER_ACCESS_FOUND = "USER_ACCESS_FOUND";
+	public static final String USER_ACCESS_NOT_FOUND = "USER_ACCESS_NOT_FOUND";
+	
 }
