@@ -230,9 +230,4 @@ public class UserServiceImpl implements UserService {
 		return responseUtil.generateResponse(dataMap, ResponseConstants.USER_NOT_FOUND);
 	}
 
-	@Override
-	public ResponseEntity<Object> getUserAccess(HttpServletRequest request, String userId) {
-		return ResponseEntity.ok(securityCache.getUserAccess(userId));
-	}
-
 }

@@ -1,6 +1,9 @@
 package org.tekloka.user.service.impl;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.tekloka.user.feign.ArticleServiceProxy;
 import org.tekloka.user.security.SecurityCache;
@@ -33,4 +36,8 @@ public class AdminServiceImpl implements AdminService{
 		articleServiceProxy.clearSecurityCache(feignClientAccessId);
 	}
 
+	@Override
+	public ResponseEntity<Object> getUserAccess(HttpServletRequest request, String userId) {
+		return ResponseEntity.ok(securityCache.getUserAccess(userId));
+	}
 }

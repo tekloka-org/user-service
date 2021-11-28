@@ -8,13 +8,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.tekloka.user.constants.DataConstants;
 import org.tekloka.user.dto.UserDTO;
-import org.tekloka.user.security.AllowFeignClient;
-import org.tekloka.user.security.UserAccess;
 import org.tekloka.user.service.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -91,17 +87,4 @@ public class UserController {
 		 return userService.getLoggedInUser(request);
 	}
 	
-	@Operation(summary = "Get User Access. Works only for Feign clients")
-	@ApiResponses(value = {
-	     @ApiResponse(responseCode = "200", description = "Success"),
-	     @ApiResponse(responseCode = "500", description = "Internal Server Error")
-	})
-	@GetMapping(path = "get-user-access/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
-	@AllowFeignClient
-	public ResponseEntity<Object>  getUserAccess(HttpServletRequest request, 
-			//@RequestHeader(value = DataConstants.FEIGN_CLIENT_ACCESS_ID, required = true) String feignClientAccessId,
-			@PathVariable String userId) {
-		//System.out.println("feignClientAccessId: "+feignClientAccessId);
-		 return userService.getUserAccess(request, userId);
-	}
 }

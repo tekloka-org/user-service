@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.tekloka.user.security.AllowFeignClient;
 import org.tekloka.user.service.AdminService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,15 +24,16 @@ public class AdminController {
 	public AdminController(AdminService adminService) {
 		this.adminService = adminService;
 	}
-	
-//	@Operation(summary = "Clear Secutity Cache of a User")
-//	@ApiResponses(value = {
-//	     @ApiResponse(responseCode = "200", description = "Success"),
-//	     @ApiResponse(responseCode = "500", description = "Internal Server Error")
-//	})
-//	@GetMapping(path = "clear-user-security-cache/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
-//	@AllowFeignClient
-//	public ResponseEntity<Object> getArticle(HttpServletRequest request, @PathVariable String userId) {
-//		 return adminService.clearUserSecurityCache(request, userId);
-//	}
+
+	@Operation(summary = "Get User Access. Works only for Feign clients")
+	@ApiResponses(value = {
+	     @ApiResponse(responseCode = "200", description = "Success"),
+	     @ApiResponse(responseCode = "500", description = "Internal Server Error")
+	})
+	@GetMapping(path = "get-user-access/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@AllowFeignClient
+	public ResponseEntity<Object>  getUserAccess(HttpServletRequest request,
+			@PathVariable String userId) {
+		 return adminService.getUserAccess(request, userId);
+	}
 }
