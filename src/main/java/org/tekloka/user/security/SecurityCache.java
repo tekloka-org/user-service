@@ -67,7 +67,7 @@ public final class SecurityCache {
 			Set<String> userPermissions = new HashSet<>();
 			if(null != userOptional.get().getRoles()) {
 				userOptional.get().getRoles().stream().filter(Objects::nonNull).forEach(e -> userRoles.add(e.getCode()));
-				userOptional.get().getRoles().stream().filter(Objects::nonNull).map(Role::getPermissions)
+				userOptional.get().getRoles().stream().filter(Objects::nonNull).map(Role::getPermissions).filter(Objects::nonNull)
 				.forEach(permissions -> permissions.stream().forEach(p -> userPermissions.add(p.getCode())));
 			}
 			var userAccess = new UserAccess(userId, userOptional.get().getName(), userRoles, userPermissions);
