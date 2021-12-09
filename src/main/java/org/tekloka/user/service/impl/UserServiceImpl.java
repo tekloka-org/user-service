@@ -169,6 +169,8 @@ public class UserServiceImpl implements UserService {
 					String authToken = jwtHelper.generateAuthenticationToken(userOptional.get());
 					dataMap.put(DataConstants.X_AUTH_TOKEN, authToken);
 					dataMap.put(DataConstants.USER, toUserDTO(user));
+					dataMap.put(DataConstants.ROLE_KEYS, securityCache.getUserRoleSet(user.getUserId()));
+					dataMap.put(DataConstants.PERMISSION_KEYS, securityCache.getUserPermissionSet(user.getUserId()));
 					return responseUtil.generateResponse(dataMap, ResponseConstants.LOGIN_SUCCESS);
 				}
 			}
