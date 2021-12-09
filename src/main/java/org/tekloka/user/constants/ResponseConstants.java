@@ -58,4 +58,10 @@ public class ResponseConstants {
 	public static final String USER_ACCESS_FOUND = "USER_ACCESS_FOUND";
 	public static final String USER_ACCESS_NOT_FOUND = "USER_ACCESS_NOT_FOUND";
 	
+	public static final String EMAIL_SENDING_FAILURE = "EMAIL_SENDING_FAILURE";
+	public static final String EMAIL_VERIFICATION_SUCCESS = "EMAIL_VERIFICATION_SUCCESS";
+	public static final String EMAIL_ALREADY_VERIFIED = "EMAIL_ALREADY_VERIFIED";
+	public static final String EMAIL_NOT_VERIFIED = "EMAIL_NOT_VERIFIED";
+	public static final String EMAIL_VERIFICATION_FAILED = "EMAIL_VERIFICATION_FAILED";
+	
 }

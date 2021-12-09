@@ -15,7 +15,9 @@ public class AuditorAwareUtil implements AuditorAware<String> {
 		var servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();		
 		if(null != servletRequestAttributes) {
 			var request = servletRequestAttributes.getRequest();
-			userId = request.getHeader(DataConstants.LOGGED_IN_USER_ID);
+			if(null != request.getHeader(DataConstants.LOGGED_IN_USER_ID)) {
+				userId = request.getHeader(DataConstants.LOGGED_IN_USER_ID);
+			}
 		}
 		return Optional.of(userId);
 	}

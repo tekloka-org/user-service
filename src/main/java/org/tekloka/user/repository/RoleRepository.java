@@ -13,7 +13,7 @@ public interface RoleRepository extends MongoRepository<Role, String>{
 	
 	Set<Role> findByActiveAndRestricted(boolean active, boolean restricted);		
 
-	Optional<Role> findByRoleIdOrCode(String roleId, String code);
+	Optional<Role> findByCodeAndActive(String code, boolean active);
 	
 	Set<Role> findByRoleIdInAndActive(Set<String> roleIds, boolean active);
 	

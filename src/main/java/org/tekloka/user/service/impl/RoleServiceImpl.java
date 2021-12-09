@@ -75,8 +75,8 @@ public class RoleServiceImpl implements RoleService{
 	}
 	
 	@Override
-	public Optional<Role> findByRoleIdOrCode(String roleId, String code){
-		return roleRepository.findByRoleIdOrCode(roleId, code);
+	public Optional<Role> findByCodeAndActive(String code, boolean active){
+		return roleRepository.findByCodeAndActive(code, active);
 	}
 	
 	@Override
@@ -145,7 +145,7 @@ public class RoleServiceImpl implements RoleService{
 	@Override
 	public ResponseEntity<Object> getRole(HttpServletRequest request, String roleCode) {
 		Map<String, Object> dataMap = new HashMap<>();
-		Optional<Role> roleOptional = findByRoleIdOrCode(roleCode, roleCode);
+		Optional<Role> roleOptional = findByCodeAndActive(roleCode, true);
 		if(roleOptional.isPresent()) {
 			dataMap.put(DataConstants.ROLE, toRoleDTO(roleOptional.get()));
 			return responseUtil.generateResponse(dataMap, ResponseConstants.ROLE_FOUND);

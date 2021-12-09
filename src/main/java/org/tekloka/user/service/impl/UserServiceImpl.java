@@ -1,14 +1,20 @@
 package org.tekloka.user.service.impl;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.tekloka.user.constants.AppConstants;
@@ -18,7 +24,6 @@ import org.tekloka.user.constants.RoleConstants;
 import org.tekloka.user.document.Role;
 import org.tekloka.user.document.User;
 import org.tekloka.user.dto.LoginDTO;
-import org.tekloka.user.dto.RoleDTO;
 import org.tekloka.user.dto.SignUpDTO;
 import org.tekloka.user.dto.UserDTO;
 import org.tekloka.user.dto.mapper.UserMapper;
@@ -28,6 +33,7 @@ import org.tekloka.user.security.SecurityCache;
 import org.tekloka.user.service.AdminService;
 import org.tekloka.user.service.RoleService;
 import org.tekloka.user.service.UserService;
+import org.tekloka.user.util.EmailUtil;
 import org.tekloka.user.util.EncryptDecryptUtil;
 import org.tekloka.user.util.ResponseUtil;
 
@@ -35,6 +41,7 @@ import org.tekloka.user.util.ResponseUtil;
 public class UserServiceImpl implements UserService {
 
 	private final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
+	
 	private final UserRepository userRepository;
 	private final ResponseUtil responseUtil;
 	private final EncryptDecryptUtil encryptDecryptUtil;
@@ -43,10 +50,15 @@ public class UserServiceImpl implements UserService {
 	private final RoleService roleService;
 	private final SecurityCache securityCache;
 	private final AdminService adminService;
+	private final EmailUtil emailUtil;
+	
+	@Value("${webapp.url}") 
+	private String webappUrl;
 	
 	public UserServiceImpl(UserRepository userRepository, ResponseUtil responseUtil,
 			EncryptDecryptUtil encryptDecryptUtil, UserMapper userMapper, JWTHelper jwtHelper,
-			RoleService roleService, SecurityCache securityCache, AdminService adminService) {
+			RoleService roleService, SecurityCache securityCache, AdminService adminService,
+			EmailUtil emailUtil) {
 		this.userRepository = userRepository;
 		this.responseUtil = responseUtil;
 		this.encryptDecryptUtil = encryptDecryptUtil;
@@ -55,6 +67,7 @@ public class UserServiceImpl implements UserService {
 		this.roleService = roleService;
 		this.securityCache = securityCache;
 		this.adminService = adminService;
+		this.emailUtil = emailUtil;
 	}
 	
 	public User toUser(Optional<User> userOptional, UserDTO userDTO) {
@@ -105,18 +118,42 @@ public class UserServiceImpl implements UserService {
 				return responseUtil.generateResponse(dataMap, ResponseConstants.DUPLICATE_EMAIL_ADDRESS);
 			}
 			var user = userMapper.toUser(signUpDTO);
-			Set<RoleDTO> roleSet = new HashSet<>();
-			Optional<Role> roleOptional = roleService.findByRoleIdOrCode(null, RoleConstants.AUTHOR);
+			Set<Role> roleSet = new HashSet<>();
+			Optional<Role> roleOptional = roleService.findByCodeAndActive(RoleConstants.MEMBER, true);
 			if(roleOptional.isPresent()) {
-				roleSet.add(roleService.toRoleDTO(roleOptional.get()));
+				roleSet.add(roleOptional.get());
 			}
+			user.setRoles(roleSet);
 			user.setActive(true);
+			var verficationKey = UUID.randomUUID().toString().replace("-", "");
+			user.setVerificationKey(verficationKey);
+			user.setVerified(false);
 			save(user);
+			emailUtil.sendEmail(user.getEmailAddress(), "Welcome, Please confirm your email address", getEmailConfirmationBody(user));
 			return responseUtil.generateResponse(dataMap, ResponseConstants.SIGN_UP_SUCCESS);
+		}catch (UnsupportedEncodingException | MessagingException e) {
+			logger.error(AppConstants.LOG_FORMAT, ResponseConstants.EMAIL_SENDING_FAILURE, e);
+			return responseUtil.generateResponse(dataMap, ResponseConstants.EMAIL_SENDING_FAILURE);
 		}catch (Exception e) {
 			logger.error(AppConstants.LOG_FORMAT, ResponseConstants.SIGN_UP_FAILURE, e);
 			return responseUtil.generateResponse(dataMap, ResponseConstants.SIGN_UP_FAILURE);
 		}
+	}
+	
+	private String getEmailConfirmationBody(User user) {
+		var confirmationLink = webappUrl + "/process/email-verification?emailAddress="
+				+ URLEncoder.encode(user.getEmailAddress(), StandardCharsets.UTF_8) + "&verificationKey="
+				+ URLEncoder.encode(user.getVerificationKey(), StandardCharsets.UTF_8);
+		return "<html>"
+				+ "    <body>"
+				+ "        <h3>Hello "+user.getName()+", welcome to the Tekloka.org</h3>"
+				+ "        <div>"
+				+ "            Please confirm your email address by clicking "
+				+ "            <a target='_blank' href=\""+confirmationLink+"\">Confirm<a>"
+				+ "        </div>"
+				+ "        <h3>Thanks</h3>"
+				+ "    </body>"
+				+ "</html>";
 	}
 	
 	@Override
@@ -126,7 +163,9 @@ public class UserServiceImpl implements UserService {
 			Optional<User> userOptional = findByEmailAddressAndActive(loginDTO.getEmailAddress(), true);
 			if(userOptional.isPresent()) {
 				var user = userOptional.get();
-				if(encryptDecryptUtil.decrypt(user.getPassword()).equals(loginDTO.getPassword())) {
+				if(!user.isVerified()) {
+					return responseUtil.generateResponse(dataMap, ResponseConstants.EMAIL_NOT_VERIFIED);
+				}else if(encryptDecryptUtil.decrypt(user.getPassword()).equals(loginDTO.getPassword())) {
 					String authToken = jwtHelper.generateAuthenticationToken(userOptional.get());
 					dataMap.put(DataConstants.X_AUTH_TOKEN, authToken);
 					dataMap.put(DataConstants.USER, toUserDTO(user));
@@ -138,7 +177,6 @@ public class UserServiceImpl implements UserService {
 		}
 		return responseUtil.generateResponse(dataMap, ResponseConstants.LOGIN_FAILURE);
 	}
-
 	
 	@Override
 	public ResponseEntity<Object> save(HttpServletRequest request, UserDTO userDTO) {
@@ -225,6 +263,26 @@ public class UserServiceImpl implements UserService {
 				dataMap.put(DataConstants.ROLE_KEYS, securityCache.getUserRoleSet(userId));
 				dataMap.put(DataConstants.PERMISSION_KEYS, securityCache.getUserPermissionSet(userId));
 				return responseUtil.generateResponse(dataMap, ResponseConstants.USER_FOUND);	
+			}
+		}
+		return responseUtil.generateResponse(dataMap, ResponseConstants.USER_NOT_FOUND);
+	}
+
+	@Override
+	public ResponseEntity<Object> emailVerification(HttpServletRequest request, String emailAddress,
+			String verificationKey) {
+		Map<String, Object> dataMap = new HashMap<>();
+		Optional<User> userOptional = findByEmailAddressAndActive(emailAddress, true);
+		if(userOptional.isPresent()) {
+			var user = userOptional.get();
+			if(user.isVerified()) {
+				return responseUtil.generateResponse(dataMap, ResponseConstants.EMAIL_ALREADY_VERIFIED);
+			}else if(verificationKey.equals(user.getVerificationKey())){
+				user.setVerified(true);
+				save(user);
+				return responseUtil.generateResponse(dataMap, ResponseConstants.EMAIL_VERIFICATION_SUCCESS);
+			}else {
+				return responseUtil.generateResponse(dataMap, ResponseConstants.EMAIL_VERIFICATION_FAILED);
 			}
 		}
 		return responseUtil.generateResponse(dataMap, ResponseConstants.USER_NOT_FOUND);

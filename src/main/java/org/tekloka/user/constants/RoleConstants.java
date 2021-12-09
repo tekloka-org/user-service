@@ -6,7 +6,6 @@ public class RoleConstants {
 	}
 	
 	public static final String SUPER_ADMIN = "SUPER_ADMIN";
-	public static final String AUTHOR = "AUTHOR";
-	public static final String APPROVER = "APPROVER";
+	public static final String MEMBER = "MEMBER";
 	
 }

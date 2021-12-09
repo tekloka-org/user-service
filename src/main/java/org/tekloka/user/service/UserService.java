@@ -32,4 +32,6 @@ public interface UserService {
 
 	ResponseEntity<Object> getLoggedInUser(HttpServletRequest request);
 
+	ResponseEntity<Object> emailVerification(HttpServletRequest request, String emailAddress, String verificationKey);
+
 }

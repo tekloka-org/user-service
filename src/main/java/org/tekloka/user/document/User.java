@@ -25,4 +25,7 @@ public class User extends AuditMetadata {
 	
 	private boolean active;
 	
+	private boolean verified;
+	private String verificationKey;
+	
 }

@@ -21,7 +21,7 @@ public interface RoleService {
 
 	ResponseEntity<Object> getRole(HttpServletRequest request, String roleCode);
 
-	Optional<Role> findByRoleIdOrCode(String roleId, String code);
+	Optional<Role> findByCodeAndActive(String code, boolean active);
 
 	RoleDTO toRoleDTO(Role role);
 
