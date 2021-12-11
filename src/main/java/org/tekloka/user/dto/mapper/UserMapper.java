@@ -33,6 +33,7 @@ public class UserMapper {
 		}
 		user.setName(userDTO.getName());
 		user.setEmailAddress(userDTO.getEmailAddress());
+		user.setVerified(userDTO.isVerified());
 		if(null != userDTO.getPassword() && !userDTO.getPassword().isEmpty()) {
 			user.setPassword(encryptDecryptUtil.encrypt(userDTO.getPassword()));
 		}
@@ -54,6 +55,7 @@ public class UserMapper {
 		userDTO.setUserId(user.getUserId());
 		userDTO.setName(user.getName());
 		userDTO.setEmailAddress(user.getEmailAddress());
+		userDTO.setVerified(user.isVerified());
 		Set<RoleDTO> roleDTOs = roleService.toRoleDTOSet(user.getRoles());
 		if(null != roleDTOs) {
 			userDTO.setRoles(roleDTOs);
