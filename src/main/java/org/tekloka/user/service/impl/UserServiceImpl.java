@@ -2,6 +2,7 @@ package org.tekloka.user.service.impl;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -23,6 +24,7 @@ import org.tekloka.user.constants.ResponseConstants;
 import org.tekloka.user.constants.RoleConstants;
 import org.tekloka.user.document.Role;
 import org.tekloka.user.document.User;
+import org.tekloka.user.dto.ChangePasswordDTO;
 import org.tekloka.user.dto.LoginDTO;
 import org.tekloka.user.dto.SignUpDTO;
 import org.tekloka.user.dto.UserDTO;
@@ -290,4 +292,64 @@ public class UserServiceImpl implements UserService {
 		return responseUtil.generateResponse(dataMap, ResponseConstants.USER_NOT_FOUND);
 	}
 
+	@Override
+	public ResponseEntity<Object> resetPasswordLink(HttpServletRequest request, LoginDTO loginnDTO) {
+		Map<String, Object> dataMap = new HashMap<>();
+		Optional<User> userOptional = findByEmailAddressAndActive(loginnDTO.getEmailAddress(), true);
+		if(userOptional.isPresent()) {
+			var user = userOptional.get();
+			var verficationKey = UUID.randomUUID().toString().replace("-", "");
+			user.setVerificationKey(verficationKey);
+			LocalDateTime expiryDateTime = LocalDateTime.now().plusMinutes(20);
+			user.setVerificationExpiryTime(expiryDateTime);
+			save(user);
+			try {
+				emailUtil.sendEmail(user.getEmailAddress(), "Reset Password Request", getResetPasswordEmailContent(user));
+				return responseUtil.generateResponse(dataMap, ResponseConstants.RESET_PASSWORD_LINK_GENERATED);
+			} catch (UnsupportedEncodingException | MessagingException e) {
+				logger.error(AppConstants.LOG_FORMAT, ResponseConstants.EMAIL_SENDING_FAILURE, e);
+				return responseUtil.generateResponse(dataMap, ResponseConstants.EMAIL_SENDING_FAILURE);
+			}
+		}
+		return responseUtil.generateResponse(dataMap, ResponseConstants.USER_NOT_FOUND);
+	}
+
+	private String getResetPasswordEmailContent(User user) {
+		var confirmationLink = webappUrl + "/process/change-password?emailAddress="
+				+ URLEncoder.encode(user.getEmailAddress(), StandardCharsets.UTF_8) + "&verificationKey="
+				+ URLEncoder.encode(user.getVerificationKey(), StandardCharsets.UTF_8);
+		return "<html>"
+				+ "    <body>"
+				+ "        <h3>Hello "+user.getName()+",</h3>"
+				+ "        <div>Reset password request is initiated.</div>"
+				+ "        <div>"
+				+ "            Please change your password by clicking "
+				+ "            <a target='_blank' href=\""+confirmationLink+"\">HERE<a>"
+				+ "        </div>"
+				+ "        <div>The above link is valid for 20 minutes.</div>"
+				+ "        <h3>Thanks</h3>"
+				+ "    </body>"
+				+ "</html>";
+	}
+
+	@Override
+	public ResponseEntity<Object> changePassword(HttpServletRequest request, ChangePasswordDTO chagnePasswordDTO) {
+		Map<String, Object> dataMap = new HashMap<>();
+		Optional<User> userOptional = findByEmailAddressAndActive(chagnePasswordDTO.getEmailAddress(), true);
+		if(userOptional.isPresent()) {
+			var user = userOptional.get();
+			var currentTime = LocalDateTime.now();  
+			if(currentTime.isAfter(user.getVerificationExpiryTime())) {
+				return responseUtil.generateResponse(dataMap, ResponseConstants.RESET_PASSWORD_LINK_EXPIRED);
+			}else if(chagnePasswordDTO.getVerificationKey().equals(user.getVerificationKey())){
+				user.setPassword(encryptDecryptUtil.encrypt(chagnePasswordDTO.getPassword()));
+				save(user);
+				return responseUtil.generateResponse(dataMap, ResponseConstants.PASSWORD_CHANGE_SUCCESS);
+			}else {
+				return responseUtil.generateResponse(dataMap, ResponseConstants.RESET_PASSWORD_LINK_INVALID);
+			}
+		}
+		return responseUtil.generateResponse(dataMap, ResponseConstants.USER_NOT_FOUND);
+	}
+	 
 }

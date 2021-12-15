@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.tekloka.user.dto.ChangePasswordDTO;
 import org.tekloka.user.dto.LoginDTO;
 import org.tekloka.user.dto.SignUpDTO;
 import org.tekloka.user.service.UserService;
@@ -65,4 +66,25 @@ public class PublicController {
 		 return userService.emailVerification(request, emailAddress, verificationKey);
 	}
 
+	
+	@Operation(summary = "Reset password link")
+	@ApiResponses(value = {
+	     @ApiResponse(responseCode = "200", description = "{ RESET_PASSWORD_LINK_GENERATED, EMAIL_SENDING_FAILURE, USER_NOT_FOUND }"),
+	     @ApiResponse(responseCode = "500", description = "Internal Server Error")
+	})
+	@PostMapping(path = "/reset-password-link", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Object> resetPasswordLink(HttpServletRequest request, @RequestBody LoginDTO loginnDTO) {
+		return userService.resetPasswordLink(request, loginnDTO);
+	}
+	
+	@Operation(summary = "Change Password")
+	@ApiResponses(value = {
+	     @ApiResponse(responseCode = "200", description = "{ RESET_PASSWORD_LINK_EXPIRED, PASSWORD_CHANGE_SUCCESS, RESET_PASSWORD_LINK_INVALID, USER_NOT_FOUND }"),
+	     @ApiResponse(responseCode = "500", description = "Internal Server Error")
+	})
+	@PostMapping(path = "/change-password", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Object> changePassword(HttpServletRequest request, @RequestBody ChangePasswordDTO chagnePasswordDTO) {
+		return userService.changePassword(request, chagnePasswordDTO);
+	}
+	
 }

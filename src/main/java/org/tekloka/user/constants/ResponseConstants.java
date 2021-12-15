@@ -63,5 +63,10 @@ public class ResponseConstants {
 	public static final String EMAIL_ALREADY_VERIFIED = "EMAIL_ALREADY_VERIFIED";
 	public static final String EMAIL_NOT_VERIFIED = "EMAIL_NOT_VERIFIED";
 	public static final String EMAIL_VERIFICATION_FAILED = "EMAIL_VERIFICATION_FAILED";
+	public static final String RESET_PASSWORD_LINK_GENERATED = "RESET_PASSWORD_LINK_GENERATED";
+	public static final String RESET_PASSWORD_LINK_EXPIRED = "RESET_PASSWORD_LINK_EXPIRED";
+	public static final String RESET_PASSWORD_LINK_INVALID = "RESET_PASSWORD_LINK_INVALID";
+	public static final String PASSWORD_CHANGE_SUCCESS = "PASSWORD_CHANGE_SUCCESS";
+	public static final String PASSWORD_CHANGE_FAILURE = "PASSWORD_CHANGE_FAILURE";
 	
 }

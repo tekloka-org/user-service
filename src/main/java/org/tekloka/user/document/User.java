@@ -1,4 +1,5 @@
 package org.tekloka.user.document;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 import org.springframework.data.annotation.Id;
@@ -27,5 +28,6 @@ public class User extends AuditMetadata {
 	
 	private boolean verified;
 	private String verificationKey;
+	private LocalDateTime verificationExpiryTime;
 	
 }

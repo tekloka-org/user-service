@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.http.ResponseEntity;
 import org.tekloka.user.document.User;
+import org.tekloka.user.dto.ChangePasswordDTO;
 import org.tekloka.user.dto.LoginDTO;
 import org.tekloka.user.dto.SignUpDTO;
 import org.tekloka.user.dto.UserDTO;
@@ -33,5 +34,9 @@ public interface UserService {
 	ResponseEntity<Object> getLoggedInUser(HttpServletRequest request);
 
 	ResponseEntity<Object> emailVerification(HttpServletRequest request, String emailAddress, String verificationKey);
+
+	ResponseEntity<Object> resetPasswordLink(HttpServletRequest request, LoginDTO loginnDTO);
+
+	ResponseEntity<Object> changePassword(HttpServletRequest request, ChangePasswordDTO chagnePasswordDTO);
 
 }
