@@ -3,7 +3,9 @@ package org.tekloka.user.util;
 import java.io.UnsupportedEncodingException;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
+import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
@@ -23,41 +25,38 @@ public class EmailUtil {
 	@Value("${smtp.port}") 
 	private int smtpPort;
 	
-	@Value("${smtp.username}") 
-	private String smtpUsername;
-	
 	@Value("${smtp.password}") 
 	private String smtpPassword;
 	
-	@Value("${smtp.from}") 
-	private String smtpFrom;
+	@Value("${smtp.fromEmail}") 
+	private String smtpFromEmail;
 	
 	@Value("${smtp.fromName}") 
 	private String smtpFromName;
 	
 	public void sendEmail(String to, String subject, String body) throws MessagingException, UnsupportedEncodingException {
-		
-		var props = System.getProperties();
-    	props.put("mail.transport.protocol", "smtp");
-    	props.put("mail.smtp.port", smtpPort); 
-    	props.put("mail.smtp.starttls.enable", "true");
-    	props.put("mail.smtp.auth", "true");
- 
-    	var session = Session.getDefaultInstance(props);
- 
-        var msg = new MimeMessage(session);
-        msg.setFrom(new InternetAddress(smtpFrom, smtpFromName));
-        msg.setRecipient(Message.RecipientType.TO, new InternetAddress(to));
-        msg.setSubject(subject);
-        msg.setContent(body,"text/html");
-        
-        var transport = session.getTransport();
-        logger.info("Sending email");   
-        transport.connect(smtpHost, smtpUsername, smtpPassword);
-        transport.sendMessage(msg, msg.getAllRecipients());
-        logger.info("Email sent!");
-        transport.close();
-        
+	 
+		  var properties = System.getProperties();
+		  properties.put("mail.smtp.host", smtpHost);
+		  properties.put("mail.smtp.port", smtpPort);
+		  properties.put("mail.smtp.ssl.enable", "true");
+		  properties.put("mail.smtp.auth", "true");
+	      
+    	  var session = Session.getInstance(properties, new javax.mail.Authenticator() {
+				@Override
+    		  	protected PasswordAuthentication getPasswordAuthentication() {
+					return new PasswordAuthentication(smtpFromEmail, smtpPassword);
+				}
+		  });
+    	  
+          var message = new MimeMessage(session);
+          message.setFrom(new InternetAddress(smtpFromEmail, smtpFromName));
+          message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+          message.setSubject(subject);
+          message.setContent(body,"text/html");
+          Transport.send(message);
+          logger.info("Email sent!");
+    	  
 	}
 
 }
